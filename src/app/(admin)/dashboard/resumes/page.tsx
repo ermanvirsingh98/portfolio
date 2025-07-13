@@ -31,11 +31,17 @@ export default function ResumesPage() {
     const [resumes, setResumes] = useState<Resume[]>([]);
     const [loading, setLoading] = useState(true);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [openDropdown, setOpenDropdown] = useState<string | null>(null);
     const router = useRouter();
 
     useEffect(() => {
         fetchResumes();
     }, []);
+
+    const handleDropdownOpenChange = (resumeId: string, open: boolean) => {
+        console.log(`Dropdown ${open ? 'opened' : 'closed'} for resume:`, resumeId);
+        setOpenDropdown(open ? resumeId : null);
+    };
 
     const fetchResumes = async () => {
         try {
@@ -149,28 +155,54 @@ export default function ResumesPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center justify-between">
                                 <span className="truncate">{resume.title}</span>
-                                <DropdownMenu>
+                                <DropdownMenu open={openDropdown === resume.id} onOpenChange={(open) => handleDropdownOpenChange(resume.id, open)}>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className={openDropdown === resume.id ? "bg-accent" : ""}
+                                        >
                                             <MoreVertical className="h-4 w-4" />
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onClick={() => router.push(`/dashboard/resumes/${resume.id}`)}>
+                                        <DropdownMenuItem
+                                            onSelect={(e) => {
+                                                e.preventDefault();
+                                                console.log("Edit clicked for resume:", resume.id);
+                                                router.push(`/dashboard/resumes/${resume.id}`);
+                                            }}
+                                        >
                                             <Edit className="mr-2 h-4 w-4" />
                                             Edit
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => router.push(`/dashboard/resumes/${resume.id}/preview`)}>
+                                        <DropdownMenuItem
+                                            onSelect={(e) => {
+                                                e.preventDefault();
+                                                console.log("Preview clicked for resume:", resume.id);
+                                                router.push(`/dashboard/resumes/${resume.id}/preview`);
+                                            }}
+                                        >
                                             <Eye className="mr-2 h-4 w-4" />
                                             Preview
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => router.push(`/dashboard/resumes/${resume.id}/print`)}>
+                                        <DropdownMenuItem
+                                            onSelect={(e) => {
+                                                e.preventDefault();
+                                                console.log("Print clicked for resume:", resume.id);
+                                                router.push(`/dashboard/resumes/${resume.id}/print`);
+                                            }}
+                                        >
                                             <Download className="mr-2 h-4 w-4" />
                                             Print
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem
-                                            onClick={() => handleDelete(resume.id)}
+                                            onSelect={(e) => {
+                                                e.preventDefault();
+                                                console.log("Delete clicked for resume:", resume.id);
+                                                handleDelete(resume.id);
+                                            }}
                                             className="text-red-600"
                                         >
                                             <Trash2 className="mr-2 h-4 w-4" />
