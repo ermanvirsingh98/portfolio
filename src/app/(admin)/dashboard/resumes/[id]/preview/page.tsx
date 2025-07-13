@@ -18,19 +18,32 @@ interface Resume {
     sections: any[];
 }
 
-export default async function ResumePreviewPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
+export default function ResumePreviewPage({ params }: { params: Promise<{ id: string }> }) {
     const [resume, setResume] = useState<Resume | null>(null);
     const [loading, setLoading] = useState(true);
+    const [resumeId, setResumeId] = useState<string | null>(null);
+
     const router = useRouter();
 
     useEffect(() => {
-        fetchResume();
-    }, [id]);
+        const getResumeId = async () => {
+            const { id } = await params;
+            setResumeId(id);
+        };
+        getResumeId();
+    }, [params]);
+
+    useEffect(() => {
+        if (resumeId) {
+            fetchResume();
+        }
+    }, [resumeId]);
+
+
 
     const fetchResume = async () => {
         try {
-            const response = await fetch(`/api/resumes/${id}`);
+            const response = await fetch(`/api/resumes/${resumeId}`);
             if (response.ok) {
                 const data = await response.json();
                 // Parse content for each section

@@ -53,8 +53,7 @@ interface ExperiencePosition {
     order: number;
 }
 
-export default async function EditExperiencePage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
+export default function EditExperiencePage({ params }: { params: Promise<{ id: string }> }) {
     const [isLoading, setIsLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(true);
     const [positions, setPositions] = useState<ExperiencePosition[]>([]);
