@@ -21,9 +21,17 @@ export function ExperiencePositionItem({ position }: { position: any }) {
 
             <h4 className="flex-1 font-heading font-medium text-balance underline-offset-4 group-hover/experience:underline">
               {position.title}
+              {position.isCurrent && (
+                <span className="ml-2 inline-flex items-center gap-1 text-xs font-medium text-green-600">
+                  <span className="inline-flex size-1.5 rounded-full bg-green-500 animate-ping"></span>
+                  Currently Working
+                </span>
+              )}
             </h4>
 
-            <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground transition-transform duration-300" />
+            <div className="flex items-center gap-2">
+              <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground transition-transform duration-300" />
+            </div>
           </div>
 
           <p className="flex items-center gap-2 pl-9 font-mono text-xs text-muted-foreground">
@@ -35,6 +43,7 @@ export function ExperiencePositionItem({ position }: { position: any }) {
             )}
 
             <span>{position.year}</span>
+
           </p>
         </AccordionPrimitive.Trigger>
 

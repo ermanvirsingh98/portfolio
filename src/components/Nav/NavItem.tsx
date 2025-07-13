@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "motion/react";
-
 import { cn } from "@/lib/utils";
 import { NavLink } from "./NavLink";
 
@@ -12,24 +11,37 @@ export function NavItem({
   active?: boolean;
 }) {
   return (
-    <div className="relative">
+    <div className="relative group">
       <NavLink
         className={cn(
-          "relative z-1 font-medium transition-all duration-500",
-          active && "text-zinc-700 dark:!text-zinc-50 dark:text-shadow-xs"
+          "relative z-10 font-medium transition-all duration-300 hover:text-foreground/90",
+          active && "text-foreground font-semibold"
         )}
         {...props}
       />
 
       {active && (
         <motion.div
-          className="absolute -inset-x-1.5 -inset-y-1 rounded-lg border border-white bg-zinc-100 shadow ring ring-zinc-200 dark:border-0 dark:bg-accent/50 dark:shadow-none dark:ring-0"
+          className="absolute -inset-x-2 -inset-y-1 rounded-lg bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 shadow-sm backdrop-blur-sm"
           layoutId="nav-item-active"
-          transition={{ duration: 0.5 }}
+          transition={{
+            type: "spring",
+            stiffness: 300,
+            damping: 30,
+            duration: 0.4
+          }}
         >
-          <div className="hidden h-2 w-full translate-y-3 bg-white blur-lg filter dark:block" />
-          <div className="absolute -inset-x-12 -bottom-3 z-1 hidden h-px bg-[linear-gradient(90deg,transparent,var(--color-zinc-800)_10%,var(--color-zinc-500)_50%,transparent)] dark:block" />
+          <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/5 to-transparent" />
+          <div className="absolute -bottom-px left-2 right-2 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
         </motion.div>
+      )}
+
+      {/* Hover effect for non-active items */}
+      {!active && (
+        <motion.div
+          className="absolute -inset-x-2 -inset-y-1 rounded-lg bg-muted/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          initial={false}
+        />
       )}
     </div>
   );

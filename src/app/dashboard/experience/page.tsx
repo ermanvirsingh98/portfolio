@@ -41,6 +41,12 @@ export default function ExperiencePage() {
     const [experiences, setExperiences] = useState<Experience[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const formatDate = (dateString: string | null | undefined): string => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return isNaN(date.getTime()) ? "" : date.toLocaleDateString();
+    };
+
     useEffect(() => {
         fetchExperiences();
     }, []);
@@ -148,7 +154,7 @@ export default function ExperiencePage() {
             ) : (
                 <div className="space-y-4">
                     {experiences.map((experience) => (
-                        <Card key={experience.id}>
+                        <Card key={experience.id} className={experience.isCurrent ? "border-l-4 border-l-green-500 animate-pulse" : ""}>
                             <CardHeader>
                                 <div className="flex items-start justify-between">
                                     <div className="flex items-center gap-3">
@@ -166,7 +172,8 @@ export default function ExperiencePage() {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         {experience.isCurrent && (
-                                            <Badge variant="default" className="bg-green-100 text-green-800">
+                                            <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 animate-pulse">
+                                                <span className="inline-flex size-1.5 rounded-full bg-green-500 mr-1 animate-ping"></span>
                                                 Current
                                             </Badge>
                                         )}
@@ -189,16 +196,7 @@ export default function ExperiencePage() {
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                         <span>{experience.location}</span>
-                                        <span>•</span>
-                                        <span>
-                                            {new Date(experience.startDate).toLocaleDateString()} -
-                                            {experience.isCurrent
-                                                ? " Present"
-                                                : experience.endDate
-                                                    ? new Date(experience.endDate).toLocaleDateString()
-                                                    : ""
-                                            }
-                                        </span>
+
                                     </div>
 
                                     {experience.description && (
@@ -220,7 +218,8 @@ export default function ExperiencePage() {
                                                             </p>
                                                         </div>
                                                         {position.isCurrent && (
-                                                            <Badge variant="secondary" className="text-xs">
+                                                            <Badge variant="secondary" className="text-xs bg-green-50 text-green-700 border-green-200 animate-pulse">
+                                                                <span className="inline-flex size-1 rounded-full bg-green-500 mr-1 animate-ping"></span>
                                                                 Current
                                                             </Badge>
                                                         )}

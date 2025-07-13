@@ -16,12 +16,6 @@ export function Hello() {
 
   const canRestart = currentIndex === layers.length - 1;
 
-  // const nextAnimation = useCallback(() => {
-  //   setTimeout(() => {
-  //     setCurrentIndex((prev) => (prev + 1) % layers.length);
-  //   }, 500);
-  // }, []);
-
   return (
     <>
       <div
@@ -47,11 +41,18 @@ export function Hello() {
           />
 
           {layers[currentIndex] === "hello" && (
-            <AppleHelloEnglishEffect
-              className="h-10 sm:h-16"
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              // onAnimationComplete={nextAnimation}
-            />
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="relative"
+            >
+              <AppleHelloEnglishEffect className="h-10 sm:h-16" />
+
+              {/* Glow effect behind the text */}
+              <div className="absolute inset-0 -z-10 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-xl scale-110" />
+            </motion.div>
           )}
 
           <motion.div
@@ -64,21 +65,40 @@ export function Hello() {
         </div>
       </AnimatePresence>
 
+      {/* Enhanced restart button */}
       <div className="absolute inset-0 flex items-end justify-end">
         <SimpleTooltip content="Restart animation">
-          <Button
-            className="translate-px"
-            variant="outline"
-            size="icon"
-            disabled={!canRestart}
-            onClick={() => {
-              setCurrentIndex(0);
-            }}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1, duration: 0.5 }}
           >
-            <RepeatIcon />
-          </Button>
+            <Button
+              className="translate-px bg-white/80 backdrop-blur-sm border border-zinc-200 hover:bg-white/90 dark:bg-zinc-800/80 dark:border-zinc-700 dark:hover:bg-zinc-800/90 shadow-lg hover:shadow-xl transition-all duration-300"
+              variant="outline"
+              size="icon"
+              disabled={!canRestart}
+              onClick={() => {
+                setCurrentIndex(0);
+              }}
+            >
+              <RepeatIcon className="h-4 w-4" />
+            </Button>
+          </motion.div>
         </SimpleTooltip>
       </div>
+
+      {/* Subtle text overlay for additional context */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2, duration: 1 }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center"
+      >
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 font-mono tracking-wider">
+          Welcome to my digital space
+        </p>
+      </motion.div>
     </>
   );
 }

@@ -388,7 +388,7 @@ export default function EditExperiencePage({ params }: { params: Promise<{ id: s
                     ) : (
                         <div className="space-y-4">
                             {positions.map((position) => (
-                                <div key={position.id} className="border rounded-lg p-4">
+                                <div key={position.id} className={`border rounded-lg p-4 ${position.isCurrent ? "border-l-4 border-l-green-500 animate-pulse" : ""}`}>
                                     <div className="flex items-center justify-between mb-2">
                                         <div>
                                             <h4 className="font-medium">{position.title}</h4>
@@ -398,7 +398,8 @@ export default function EditExperiencePage({ params }: { params: Promise<{ id: s
                                         </div>
                                         <div className="flex items-center gap-2">
                                             {position.isCurrent && (
-                                                <Badge variant="default" className="bg-green-100 text-green-800">
+                                                <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 animate-pulse">
+                                                    <span className="inline-flex size-1.5 rounded-full bg-green-500 mr-1 animate-ping"></span>
                                                     Current
                                                 </Badge>
                                             )}

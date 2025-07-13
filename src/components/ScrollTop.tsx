@@ -17,7 +17,6 @@ export function ScrollTop({
   ...props
 }: React.ComponentProps<"button">) {
   const { scrollY } = useScroll();
-
   const [visible, setVisible] = useState(false);
 
   useMotionValueEvent(scrollY, "change", (latestValue) => {
@@ -30,7 +29,7 @@ export function ScrollTop({
         <Button
           key="scroll-top"
           className={cn(
-            "fixed right-4 bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] z-50 size-10 lg:right-8 lg:bottom-[calc(2rem+env(safe-area-inset-bottom,0px))]",
+            "fixed right-4 bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] z-50 size-12 lg:right-8 lg:bottom-[calc(2rem+env(safe-area-inset-bottom,0px))] bg-background/80 backdrop-blur-md border border-border/50 shadow-lg hover:shadow-xl hover:bg-background/90 transition-all duration-300 group",
             className
           )}
           size="icon"
@@ -39,12 +38,28 @@ export function ScrollTop({
           {...props}
         >
           <motion.button
-            initial={{ opacity: 0, translateY: 16 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            exit={{ translateY: 16, opacity: 0 }}
-            transition={{ duration: 0.5 }}
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 20 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 25,
+              duration: 0.4
+            }}
           >
-            <ChevronUpIcon className="size-6" />
+            <motion.div
+              animate={{ y: [0, -2, 0] }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            >
+              <ChevronUpIcon className="size-6 text-foreground/80 group-hover:text-foreground transition-colors duration-200" />
+            </motion.div>
           </motion.button>
         </Button>
       )}
