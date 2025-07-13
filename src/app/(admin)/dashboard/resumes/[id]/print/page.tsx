@@ -18,18 +18,18 @@ interface Resume {
     sections: any[];
 }
 
-export default function ResumePrintPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ResumePrintPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     const [resume, setResume] = useState<Resume | null>(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
     useEffect(() => {
         const loadResume = async () => {
-            const { id } = await params;
             await fetchResume(id);
         };
         loadResume();
-    }, [params]);
+    }, [id]);
 
     const fetchResume = async (id: string) => {
         try {

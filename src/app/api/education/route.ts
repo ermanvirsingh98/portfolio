@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     const {
       institution,
       degree,
-      field,
+      fieldOfStudy,
       location,
       startDate,
       endDate,
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       data: {
         institution,
         degree,
-        field,
+        fieldOfStudy,
         location,
         startDate: new Date(startDate),
         endDate: endDate ? new Date(endDate) : null,

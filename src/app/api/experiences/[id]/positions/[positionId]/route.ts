@@ -4,11 +4,12 @@ import { prisma } from "@/lib/prisma";
 // GET single position
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; positionId: string } }
+  { params }: { params: Promise<{ id: string; positionId: string }> }
 ) {
   try {
+    const { id, positionId } = await params;
     const position = await prisma.experiencePosition.findUnique({
-      where: { id: params.positionId },
+      where: { id: positionId },
     });
 
     if (!position) {
@@ -31,9 +32,10 @@ export async function GET(
 // PUT update position
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; positionId: string } }
+  { params }: { params: Promise<{ id: string; positionId: string }> }
 ) {
   try {
+    const { id, positionId } = await params;
     const body = await request.json();
     const {
       title,
@@ -49,7 +51,7 @@ export async function PUT(
     } = body;
 
     const position = await prisma.experiencePosition.update({
-      where: { id: params.positionId },
+      where: { id: positionId },
       data: {
         title,
         startDate: new Date(startDate),
@@ -77,11 +79,12 @@ export async function PUT(
 // DELETE position
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; positionId: string } }
+  { params }: { params: Promise<{ id: string; positionId: string }> }
 ) {
   try {
+    const { id, positionId } = await params;
     await prisma.experiencePosition.delete({
-      where: { id: params.positionId },
+      where: { id: positionId },
     });
 
     return NextResponse.json({ success: true });

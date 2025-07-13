@@ -433,7 +433,7 @@ A dynamic portfolio website with a comprehensive admin dashboard for content man
     data: {
       institution: "University of Technology",
       degree: "Bachelor of Science",
-      field: "Computer Science",
+      fieldOfStudy: "Computer Science",
       location: "San Francisco, CA",
       startDate: new Date("2018-09-01"),
       endDate: new Date("2022-05-01"),
@@ -544,7 +544,7 @@ A dynamic portfolio website with a comprehensive admin dashboard for content man
               {
                 institution: "University of Technology",
                 degree: "Bachelor of Science",
-                field: "Computer Science",
+                fieldOfStudy: "Computer Science",
                 location: "Dallas, TX",
                 startDate: "2018-09-01",
                 endDate: "2022-05-01",

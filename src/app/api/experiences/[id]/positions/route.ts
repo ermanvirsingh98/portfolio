@@ -4,11 +4,12 @@ import { prisma } from "@/lib/prisma";
 // GET all positions for an experience
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const positions = await prisma.experiencePosition.findMany({
-      where: { experienceId: params.id },
+      where: { experienceId: id },
       orderBy: { order: "asc" },
     });
 
@@ -25,9 +26,10 @@ export async function GET(
 // POST new position
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const {
       title,
@@ -54,7 +56,7 @@ export async function POST(
         icon,
         skills,
         order: order || 0,
-        experienceId: params.id,
+        experienceId: id,
       },
     });
 
