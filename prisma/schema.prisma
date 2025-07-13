@@ -1,0 +1,203 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider  = "postgresql"
+    url       = env("DATABASE_URL")
+    directUrl = env("DIRECT_URL")
+}
+
+model About {
+    id          String   @id @default(cuid())
+    title       String
+    description String
+    content     String // Rich text content
+    imageUrl    String?
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+}
+
+model Overview {
+    id            String   @id @default(cuid())
+    firstName     String
+    lastName      String
+    displayName   String
+    username      String   @unique
+    gender        String?
+    bio           String?
+    flipSentences String[] // Array of flip sentences
+    address       String?
+    phoneNumber   String?
+    email         String?
+    website       String?
+    otherWebsites String[] // Array of other websites
+    dateOfBirth   String? // YYYY-MM-DD format
+    jobTitle      String?
+    avatar        String?
+    ogImage       String?
+    keywords      String?
+    dateCreated   String? // YYYY-MM-DD format
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
+}
+
+model Project {
+    id           String   @id @default(cuid())
+    title        String
+    description  String
+    content      String // Rich text content
+    imageUrl     String?
+    githubUrl    String?
+    liveUrl      String?
+    technologies String[] // Array of technology names
+    featured     Boolean  @default(false)
+    order        Int      @default(0)
+    // Additional fields for frontend compatibility
+    link         String? // Alias for liveUrl
+    time         String? // Formatted time string like "03.2024 - present"
+    tags         String[] // Alias for technologies
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+}
+
+model Skill {
+    id        String   @id @default(cuid())
+    name      String   @unique
+    category  String // e.g., "Frontend", "Backend", "DevOps"
+    iconUrl   String?
+    level     Int      @default(1) // 1-5 scale
+    order     Int      @default(0)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model SocialLink {
+    id        String   @id @default(cuid())
+    platform  String   @unique // e.g., "github", "linkedin", "twitter"
+    url       String
+    iconUrl   String?
+    isActive  Boolean  @default(true)
+    order     Int      @default(0)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Experience {
+    id          String   @id @default(cuid())
+    company     String
+    location    String?
+    description String // Rich text content
+    logoUrl     String?
+    order       Int      @default(0)
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    positions ExperiencePosition[]
+}
+
+model ExperiencePosition {
+    id             String     @id @default(cuid())
+    title          String
+    startDate      DateTime
+    endDate        DateTime?
+    isCurrent      Boolean    @default(false)
+    description    String // Rich text content
+    experienceId   String
+    experience     Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+    order          Int        @default(0)
+    // Additional fields for frontend compatibility
+    year           String? // Formatted year string like "10.2021 - present"
+    employmentType String? // "Full-time", "Part-time", "Contract", etc.
+    icon           String? // "code", "design", "education", etc.
+    skills         String[] // Array of skill names
+    createdAt      DateTime   @default(now())
+    updatedAt      DateTime   @updatedAt
+}
+
+model Education {
+    id          String    @id @default(cuid())
+    institution String
+    degree      String
+    field       String
+    location    String?
+    startDate   DateTime
+    endDate     DateTime?
+    isCurrent   Boolean   @default(false)
+    description String // Rich text content
+    logoUrl     String?
+    order       Int       @default(0)
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+}
+
+model Award {
+    id          String   @id @default(cuid())
+    title       String
+    issuer      String
+    date        DateTime
+    description String // Rich text content
+    imageUrl    String?
+    url         String?
+    order       Int      @default(0)
+    // Additional fields for frontend compatibility
+    prize       String? // Award prize/recognition
+    grade       String? // Award grade/level
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+}
+
+model Certification {
+    id           String    @id @default(cuid())
+    title        String
+    issuer       String
+    issueDate    DateTime
+    expiryDate   DateTime?
+    credentialId String?
+    description  String // Rich text content
+    imageUrl     String?
+    url          String?
+    order        Int       @default(0)
+    createdAt    DateTime  @default(now())
+    updatedAt    DateTime  @updatedAt
+}
+
+model Settings {
+    id              String   @id @default(cuid())
+    siteTitle       String   @default("My Portfolio")
+    siteDescription String   @default("A creative portfolio showcasing my work and experience")
+    theme           String   @default("system") // light, dark, system
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+}
+
+model Resume {
+    id         String          @id @default(cuid())
+    title      String
+    template   String          @default("modern") // modern, classic, minimal
+    theme      String          @default("light") // light, dark
+    fontFamily String          @default("inter") // inter, roboto, open-sans
+    fontSize   String          @default("medium") // small, medium, large
+    spacing    String          @default("normal") // compact, normal, spacious
+    isPublic   Boolean         @default(false)
+    shareUrl   String?         @unique
+    sections   ResumeSection[]
+    createdAt  DateTime        @default(now())
+    updatedAt  DateTime        @updatedAt
+}
+
+model ResumeSection {
+    id        String   @id @default(cuid())
+    resumeId  String
+    resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+    type      String // personal, experience, education, skills, projects, custom
+    title     String
+    content   String // JSON string containing section data
+    order     Int      @default(0)
+    isVisible Boolean  @default(true)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
