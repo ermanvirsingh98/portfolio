@@ -42,7 +42,6 @@ export function Experiences({ data }: ExperiencesProps) {
     exp.positions?.filter((pos: ExperiencePosition) => pos.isCurrent).map((pos: ExperiencePosition) => pos.id) || []
   );
 
-  console.log(sortedExperiences);
 
   return (
     <Panel id="experience" className="scroll-mt-[4.75rem]">

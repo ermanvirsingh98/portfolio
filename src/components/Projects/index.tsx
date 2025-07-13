@@ -35,7 +35,7 @@ export function Projects({ data }: ProjectsProps) {
 
       <AccordionPrimitive.Root
         type="single"
-        defaultValue={featuredProject?.id || sortedProjects[0]?.id}
+        // defaultValue={featuredProject?.id}
         collapsible
       >
         <CollapsibleList
