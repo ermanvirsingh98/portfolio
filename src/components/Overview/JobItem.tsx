@@ -3,6 +3,7 @@ import {
   CodeXmlIcon,
   LightbulbIcon,
 } from "lucide-react";
+import { motion } from "motion/react";
 import { IntroItem } from "./IntroItem";
 
 function getJobIcon(title: string) {
@@ -27,25 +28,30 @@ export function JobItem({
   website?: string;
 }) {
   return (
-    <IntroItem
-      icon={getJobIcon(title)}
-      content={
-        <>
-          {title} @
-          {website ? (
-            <a
-              className="ml-0.5"
-              href={website}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {company}
-            </a>
-          ) : (
-            <span className="ml-0.5">{company}</span>
-          )}
-        </>
-      }
-    />
+    <motion.div
+      whileHover={{ scale: 1.01 }}
+      transition={{ duration: 0.2 }}
+    >
+      <IntroItem
+        icon={getJobIcon(title)}
+        content={
+          <>
+            {title} @
+            {website ? (
+              <a
+                className="ml-0.5 transition-colors duration-200 hover:text-primary"
+                href={website}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {company}
+              </a>
+            ) : (
+              <span className="ml-0.5">{company}</span>
+            )}
+          </>
+        }
+      />
+    </motion.div>
   );
 }

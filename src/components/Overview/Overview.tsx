@@ -1,4 +1,5 @@
 import { LinkIcon, MailIcon, MapPinIcon, PhoneIcon } from "lucide-react";
+import { motion } from "motion/react";
 
 import { Panel, PanelContent } from "../Panel";
 import { JobItem } from "./JobItem";
@@ -68,42 +69,76 @@ export function Overview({ data, experiences }: OverviewProps) {
       <h2 className="sr-only">Overview</h2>
 
       <PanelContent className="space-y-2">
-        {currentJobs.map((experience) => {
+        {currentJobs.map((experience, index) => {
           // Get all current positions for this experience
           const currentPositions = experience.positions?.filter(position => position.isCurrent) || [];
 
-          return currentPositions.map((position) => (
-            <JobItem
+          return currentPositions.map((position, posIndex) => (
+            <motion.div
               key={`${experience.id}-${position.id}`}
-              title={position.title}
-              company={experience.company}
-              website={experience.logoUrl} // Using logoUrl as website for now
-            />
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{
+                delay: index * 0.1 + posIndex * 0.05,
+                duration: 0.5,
+                ease: "easeOut"
+              }}
+            >
+              <JobItem
+                title={position.title}
+                company={experience.company}
+                website={experience.logoUrl} // Using logoUrl as website for now
+              />
+            </motion.div>
           ));
         })}
 
         {data.address && (
-          <IntroItem icon={<MapPinIcon />} content={data.address} />
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
+          >
+            <IntroItem icon={<MapPinIcon />} content={data.address} />
+          </motion.div>
         )}
 
         {data.phoneNumber && (
-          <IntroItem
-            icon={<PhoneIcon />}
-            content={data.phoneNumber}
-            href={data.phoneNumber}
-          />
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4, duration: 0.5, ease: "easeOut" }}
+          >
+            <IntroItem
+              icon={<PhoneIcon />}
+              content={data.phoneNumber}
+              href={data.phoneNumber}
+            />
+          </motion.div>
         )}
 
         {data.email && (
-          <IntroItem icon={<MailIcon />} content={data.email} href={data.email} />
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
+          >
+            <IntroItem icon={<MailIcon />} content={data.email} href={data.email} />
+          </motion.div>
         )}
 
         {data.website && (
-          <IntroItem
-            icon={<LinkIcon />}
-            content={urlToName(data.website as string)}
-            href={data.website}
-          />
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.6, duration: 0.5, ease: "easeOut" }}
+          >
+            <IntroItem
+              icon={<LinkIcon />}
+              content={urlToName(data.website as string)}
+              href={data.website}
+            />
+          </motion.div>
         )}
       </PanelContent>
     </Panel>
