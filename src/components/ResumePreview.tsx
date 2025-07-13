@@ -118,7 +118,7 @@ export default function ResumePreview({ resume }: ResumePreviewProps) {
                     <div className="absolute -left-2 top-4 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
                     <div className="flex justify-between items-start mb-3">
                         <div className="flex-1">
-                            <h3 className="font-bold text-lg text-gray-900 mb-1">{edu.degree} in {edu.field}</h3>
+                            <h3 className="font-bold text-lg text-gray-900 mb-1">{edu.degree} in {edu.fieldOfStudy}</h3>
                             <p className="text-gray-600 font-semibold text-base">{edu.institution}</p>
                         </div>
                         <div className="text-right text-sm text-gray-500 ml-4">

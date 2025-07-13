@@ -18,18 +18,25 @@ interface Resume {
     sections: any[];
 }
 
-export default async function ResumePrintPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
+export default function ResumePrintPage({ params }: { params: Promise<{ id: string }> }) {
     const [resume, setResume] = useState<Resume | null>(null);
     const [loading, setLoading] = useState(true);
+    const [resumeId, setResumeId] = useState<string | null>(null);
     const router = useRouter();
 
     useEffect(() => {
-        const loadResume = async () => {
-            await fetchResume(id);
+        const getResumeId = async () => {
+            const { id } = await params;
+            setResumeId(id);
         };
-        loadResume();
-    }, [id]);
+        getResumeId();
+    }, [params]);
+
+    useEffect(() => {
+        if (resumeId) {
+            fetchResume(resumeId);
+        }
+    }, [resumeId]);
 
     const fetchResume = async (id: string) => {
         try {
@@ -155,8 +162,10 @@ export default async function ResumePrintPage({ params }: { params: Promise<{ id
             </Card>
 
             {/* Resume for Print */}
-            <div className="bg-white rounded-lg shadow-sm border p-6 print:p-0 print:shadow-none print:border-none">
-                <ResumePreview resume={resume} />
+            <div className="bg-white rounded-lg shadow-sm border p-6 print:p-0 print:shadow-none print:border-none print:bg-white">
+                <div className="print:max-w-none print:w-full">
+                    <ResumePreview resume={resume} />
+                </div>
             </div>
         </div>
     );

@@ -147,6 +147,41 @@
     text-rendering: optimizeLegibility;
   }
 
+  /* Print styles */
+  @media print {
+    body {
+      @apply bg-white;
+    }
+    
+    .print\\:hidden {
+      display: none !important;
+    }
+    
+    .print\\:bg-white {
+      background-color: white !important;
+    }
+    
+    .print\\:shadow-none {
+      box-shadow: none !important;
+    }
+    
+    .print\\:border-none {
+      border: none !important;
+    }
+    
+    .print\\:p-0 {
+      padding: 0 !important;
+    }
+    
+    .print\\:max-w-none {
+      max-width: none !important;
+    }
+    
+    .print\\:w-full {
+      width: 100% !important;
+    }
+  }
+
   /* Custom scrollbar styling. Thanks @shadcn-ui */
   ::-webkit-scrollbar {
     width: 5px;
