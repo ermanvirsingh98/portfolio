@@ -34,6 +34,127 @@ interface HeaderProps {
   overview?: Overview | null;
 }
 
+// Particle component for animated background elements
+const AnimatedParticles = () => {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Background particles - more spread out */}
+      {[...Array(20)].map((_, i) => (
+        <motion.div
+          key={`bg-${i}`}
+          className="absolute w-1 h-1 bg-primary/10 rounded-full"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+          }}
+          animate={{
+            y: [0, -15, 0],
+            opacity: [0.1, 0.4, 0.1],
+            scale: [1, 1.3, 1],
+          }}
+          transition={{
+            duration: 4 + Math.random() * 3,
+            repeat: Infinity,
+            delay: Math.random() * 4,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+
+      {/* Medium floating particles */}
+      {[...Array(12)].map((_, i) => (
+        <motion.div
+          key={`medium-${i}`}
+          className="absolute w-1.5 h-1.5 bg-gradient-to-r from-primary/20 to-primary/5 rounded-full"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+          }}
+          animate={{
+            y: [0, -25, 0],
+            x: [0, Math.random() * 15 - 7.5, 0],
+            opacity: [0.2, 0.6, 0.2],
+            scale: [1, 1.4, 1],
+          }}
+          transition={{
+            duration: 5 + Math.random() * 2,
+            repeat: Infinity,
+            delay: Math.random() * 3,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+
+      {/* Larger floating elements */}
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={`large-${i}`}
+          className="absolute w-2 h-2 bg-gradient-to-r from-primary/25 to-primary/8 rounded-full blur-sm"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+          }}
+          animate={{
+            y: [0, -35, 0],
+            x: [0, Math.random() * 20 - 10, 0],
+            opacity: [0.15, 0.5, 0.15],
+            scale: [1, 1.6, 1],
+          }}
+          transition={{
+            duration: 6 + Math.random() * 3,
+            repeat: Infinity,
+            delay: Math.random() * 4,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+
+      {/* Subtle background dots */}
+      {[...Array(25)].map((_, i) => (
+        <motion.div
+          key={`dot-${i}`}
+          className="absolute w-0.5 h-0.5 bg-muted-foreground/15 rounded-full"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+          }}
+          animate={{
+            opacity: [0.05, 0.3, 0.05],
+          }}
+          transition={{
+            duration: 3 + Math.random() * 2,
+            repeat: Infinity,
+            delay: Math.random() * 3,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+
+      {/* Occasional sparkle effects */}
+      {[...Array(4)].map((_, i) => (
+        <motion.div
+          key={`sparkle-${i}`}
+          className="absolute w-1 h-1 bg-white/40 rounded-full"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+          }}
+          animate={{
+            opacity: [0, 0.8, 0],
+            scale: [0, 1.5, 0],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            delay: Math.random() * 8,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
 export function Header({ overview }: HeaderProps) {
   // Fallback to default values if overview is not available
   const displayName = overview?.displayName || "Your Name";
@@ -51,13 +172,16 @@ export function Header({ overview }: HeaderProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
     >
+      {/* Background particles for entire header */}
+      <AnimatedParticles />
+
       <HeroBanner />
 
-      {/* Modern navigation bar with enhanced styling */}
+      {/* Simple navigation bar */}
       <motion.div
-        className="absolute top-0 right-0 flex items-center gap-3 border-border/50 bg-background/90 backdrop-blur-md ring-1 ring-border/30 ring-inset sm:pl-3 rounded-bl-xl shadow-xl"
-        initial={{ opacity: 0, y: -20, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
+        className="absolute top-0 right-0 flex items-center gap-3 bg-background/90 backdrop-blur-sm border border-border/50 rounded-bl-lg shadow-sm z-10"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
       >
         <Nav className="max-sm:hidden" />
@@ -69,30 +193,24 @@ export function Header({ overview }: HeaderProps) {
         </div>
       </motion.div>
 
-      {/* Creative modern profile section */}
-      <div className="screen-line-after border-x border-border/50 bg-gradient-to-r from-background via-background/95 to-background relative overflow-hidden">
-        {/* Subtle background pattern */}
-        <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(circle_at_1px_1px,rgb(0_0_0)_1px,transparent_0)] bg-[size:20px_20px] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255)_1px,transparent_0)]" />
-
+      {/* Clean profile section */}
+      <div className="screen-line-after border-x border-border/50 bg-background/95 backdrop-blur-sm relative">
         <div className="relative p-6">
-          {/* Creative header layout */}
+          {/* Simple header layout */}
           <div className="flex flex-col gap-4">
-            {/* Modern code snippet decoration */}
+            {/* Clean code snippet */}
             <motion.div
               className="flex justify-end"
-              initial={{ opacity: 0, y: -20 }}
+              initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
+              transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
             >
-              <div className="line-clamp-1 font-mono text-xs text-muted-foreground/80 select-none bg-muted/50 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-border/30">
-                {"text-3xl "}
-                <span className="inline dark:hidden">text-zinc-950</span>
-                <span className="hidden dark:inline">text-zinc-50</span>
-                {" font-medium"}
+              <div className="font-mono text-xs text-muted-foreground bg-muted/50 px-3 py-1 rounded-md border border-border/30">
+                {"text-2xl font-medium"}
               </div>
             </motion.div>
 
-            {/* Creative name and status section */}
+            {/* Name and content section */}
             <div className="flex items-start justify-between gap-4">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -100,15 +218,15 @@ export function Header({ overview }: HeaderProps) {
                 transition={{ delay: 0.4, duration: 0.6, ease: "easeOut" }}
                 className="flex-1"
               >
-                {/* Enhanced name section with creative layout */}
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="font-heading text-3xl font-semibold bg-gradient-to-r from-foreground via-foreground/90 to-foreground/80 bg-clip-text">
+                {/* Clean name section */}
+                <div className="flex items-center gap-3 mb-3">
+                  <h1 className="font-heading text-3xl font-semibold text-foreground">
                     {displayName}
                   </h1>
                   <motion.div
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ delay: 0.8, duration: 0.5, ease: "easeOut" }}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.7, duration: 0.4, ease: "easeOut" }}
                   >
                     <SimpleTooltip
                       content={`Official website of ${displayName}`}
@@ -118,57 +236,42 @@ export function Header({ overview }: HeaderProps) {
                   </motion.div>
                 </div>
 
-                {/* Creative status indicator */}
+                {/* Simple status indicator */}
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="flex items-center gap-2">
-                    <motion.div
-                      className="h-2 w-2 rounded-full bg-green-500"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.9, duration: 0.4, ease: "easeOut" }}
-                    >
-                      <div className="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-75" />
-                    </motion.div>
-                    <span className="text-sm text-muted-foreground font-mono">Available for opportunities</span>
-                  </div>
+                  <div className="h-2 w-2 rounded-full bg-green-500" />
+                  <span className="text-sm text-muted-foreground font-medium">
+                    Available for opportunities
+                  </span>
                 </div>
 
-                {/* Enhanced bio section */}
+                {/* Clean bio section */}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6, duration: 0.6, ease: "easeOut" }}
-                  className="relative"
+                  transition={{ delay: 0.5, duration: 0.6, ease: "easeOut" }}
+                  className="text-muted-foreground"
                 >
                   <FlipSentences sentences={[bio, ...flipSentences]} />
                 </motion.div>
               </motion.div>
 
-              {/* Creative decorative elements */}
+              {/* Simple decorative element */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5, duration: 0.6, ease: "easeOut" }}
-                className="hidden sm:flex flex-col items-end gap-2"
+                transition={{ delay: 0.6, duration: 0.5, ease: "easeOut" }}
+                className="hidden sm:block"
               >
-                {/* Decorative gradient bars */}
-                <div className="flex gap-1">
-                  <div className="h-8 w-1 bg-gradient-to-b from-primary/60 to-primary/20 rounded-full" />
-                  <div className="h-8 w-1 bg-gradient-to-b from-primary/40 to-primary/10 rounded-full" />
-                  <div className="h-8 w-1 bg-gradient-to-b from-primary/20 to-primary/5 rounded-full" />
-                </div>
-
-                {/* Creative corner accent */}
-                <div className="h-6 w-6 border-r-2 border-b-2 border-primary/30 rounded-br-lg" />
+                <div className="h-8 w-1 bg-gradient-to-b from-primary/60 to-primary/20 rounded-full" />
               </motion.div>
             </div>
 
-            {/* Creative bottom accent */}
+            {/* Simple bottom line */}
             <motion.div
               initial={{ opacity: 0, scaleX: 0 }}
               animate={{ opacity: 1, scaleX: 1 }}
-              transition={{ delay: 0.7, duration: 0.8, ease: "easeOut" }}
-              className="h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"
+              transition={{ delay: 0.7, duration: 0.6, ease: "easeOut" }}
+              className="h-px bg-gradient-to-r from-transparent via-border to-transparent"
             />
           </div>
         </div>
