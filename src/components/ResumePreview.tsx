@@ -1,5 +1,5 @@
 import React from "react";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 
 interface ResumeSection {
     id: string;
@@ -23,6 +23,21 @@ interface ResumePreviewProps {
 }
 
 export default function ResumePreview({ resume }: ResumePreviewProps) {
+    // Safe date formatting function
+    const formatDate = (dateString: string | null | undefined): string => {
+        if (!dateString) return "N/A";
+
+        try {
+            const date = new Date(dateString);
+            if (isValid(date)) {
+                return format(date, "MMM yyyy");
+            }
+            return "N/A";
+        } catch (error) {
+            return "N/A";
+        }
+    };
+
     const getTemplateStyles = () => {
         const baseStyles = "max-w-4xl mx-auto bg-white shadow-2xl border border-gray-200";
 
@@ -97,8 +112,8 @@ export default function ResumePreview({ resume }: ResumePreviewProps) {
                         </div>
                         <div className="text-right text-sm text-gray-500 ml-4">
                             <p className="font-medium">
-                                {format(new Date(exp.startDate), "MMM yyyy")} -
-                                {exp.isCurrent ? " Present" : format(new Date(exp.endDate), " MMM yyyy")}
+                                {formatDate(exp.startDate)} -
+                                {exp.isCurrent ? " Present" : ` ${formatDate(exp.endDate)}`}
                             </p>
                             {exp.location && <p className="text-xs mt-1">{exp.location}</p>}
                         </div>
@@ -123,8 +138,8 @@ export default function ResumePreview({ resume }: ResumePreviewProps) {
                         </div>
                         <div className="text-right text-sm text-gray-500 ml-4">
                             <p className="font-medium">
-                                {format(new Date(edu.startDate), "MMM yyyy")} -
-                                {edu.isCurrent ? " Present" : format(new Date(edu.endDate), " MMM yyyy")}
+                                {formatDate(edu.startDate)} -
+                                {edu.isCurrent ? " Present" : ` ${formatDate(edu.endDate)}`}
                             </p>
                             {edu.location && <p className="text-xs mt-1">{edu.location}</p>}
                         </div>
