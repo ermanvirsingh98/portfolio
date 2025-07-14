@@ -9,7 +9,7 @@ interface Education {
     id: string;
     institution: string;
     degree: string;
-    field: string;
+    fieldOfStudy: string;
     location: string | null;
     startDate: string;
     endDate: string | null;

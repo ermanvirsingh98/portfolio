@@ -9,8 +9,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, Save, X, Loader2, GraduationCap, Calendar, MapPin } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, Loader2, GraduationCap, Calendar, MapPin, GripVertical } from "lucide-react";
 import { api } from "@/lib/api";
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const educationSchema = z.object({
     institution: z.string().min(1, "Institution name is required"),
@@ -40,12 +59,116 @@ interface Education {
     order: number;
 }
 
+// Sortable Education Item Component
+function SortableEducationItem({
+    education,
+    onEdit,
+    onDelete,
+    isDisabled
+}: {
+    education: Education;
+    onEdit: (education: Education) => void;
+    onDelete: (id: string) => void;
+    isDisabled: boolean;
+}) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: education.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+        <Card ref={setNodeRef} style={style} className={isDragging ? "shadow-lg" : ""}>
+            <CardHeader>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                        <div
+                            {...attributes}
+                            {...listeners}
+                            className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded"
+                            title="Drag to reorder"
+                        >
+                            <GripVertical className="h-4 w-4 text-gray-400" />
+                        </div>
+                        {education.logoUrl && (
+                            <img
+                                src={education.logoUrl}
+                                alt={`${education.institution} logo`}
+                                className="h-10 w-10 rounded object-cover"
+                            />
+                        )}
+                        <div>
+                            <CardTitle className="text-lg">{education.institution}</CardTitle>
+                            <CardDescription className="flex items-center space-x-2">
+                                <GraduationCap className="h-4 w-4" />
+                                <span>{education.degree} in {education.field}</span>
+                                {education.location && (
+                                    <>
+                                        <MapPin className="h-4 w-4" />
+                                        <span>{education.location}</span>
+                                    </>
+                                )}
+                            </CardDescription>
+                        </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <span className="text-sm text-muted-foreground">
+                            {new Date(education.startDate).getFullYear()} -
+                            {education.isCurrent ? " Present" : education.endDate ? new Date(education.endDate).getFullYear() : ""}
+                        </span>
+                        {education.isCurrent && (
+                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                                Current
+                            </span>
+                        )}
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => onEdit(education)}
+                            disabled={isDisabled}
+                        >
+                            <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => onDelete(education.id)}
+                            disabled={isDisabled}
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">{education.description}</p>
+            </CardContent>
+        </Card>
+    );
+}
+
 export default function EducationPage() {
     const [educations, setEducations] = useState<Education[]>([]);
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(true);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     const form = useForm<EducationFormData>({
         resolver: zodResolver(educationSchema),
@@ -131,6 +254,40 @@ export default function EducationPage() {
         setIsAdding(false);
         setEditingId(null);
         form.reset();
+    };
+
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (active.id !== over?.id) {
+            setEducations((items) => {
+                const oldIndex = items.findIndex((item) => item.id === active.id);
+                const newIndex = items.findIndex((item) => item.id === over?.id);
+
+                const newItems = arrayMove(items, oldIndex, newIndex);
+
+                // Update order numbers and save to database
+                const updatedItems = newItems.map((item, index) => ({
+                    ...item,
+                    order: index,
+                }));
+
+                // Save the new order to the database
+                updatedItems.forEach(async (item) => {
+                    try {
+                        await api.education.update(item.id, {
+                            ...item,
+                            startDate: item.startDate.split('T')[0],
+                            endDate: item.endDate ? item.endDate.split('T')[0] : null,
+                        });
+                    } catch (error) {
+                        console.error("Error updating education order:", error);
+                    }
+                });
+
+                return updatedItems;
+            });
+        }
     };
 
     if (isFetching) {
@@ -303,79 +460,39 @@ export default function EducationPage() {
             )}
 
             {/* Education List */}
-            <div className="space-y-4">
-                {educations.map((education) => (
-                    <Card key={education.id}>
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                    {education.logoUrl && (
-                                        <img
-                                            src={education.logoUrl}
-                                            alt={`${education.institution} logo`}
-                                            className="h-10 w-10 rounded object-cover"
-                                        />
-                                    )}
-                                    <div>
-                                        <CardTitle className="text-lg">{education.institution}</CardTitle>
-                                        <CardDescription className="flex items-center space-x-2">
-                                            <GraduationCap className="h-4 w-4" />
-                                            <span>{education.degree} in {education.field}</span>
-                                            {education.location && (
-                                                <>
-                                                    <MapPin className="h-4 w-4" />
-                                                    <span>{education.location}</span>
-                                                </>
-                                            )}
-                                        </CardDescription>
-                                    </div>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-sm text-muted-foreground">
-                                        {new Date(education.startDate).getFullYear()} -
-                                        {education.isCurrent ? " Present" : education.endDate ? new Date(education.endDate).getFullYear() : ""}
-                                    </span>
-                                    {education.isCurrent && (
-                                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-                                            Current
-                                        </span>
-                                    )}
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => handleEdit(education)}
-                                        disabled={isAdding || editingId !== null}
-                                    >
-                                        <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => handleDelete(education.id)}
-                                        disabled={isAdding || editingId !== null}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-muted-foreground whitespace-pre-line">{education.description}</p>
-                        </CardContent>
-                    </Card>
-                ))}
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+            >
+                <SortableContext
+                    items={educations.map(edu => edu.id)}
+                    strategy={verticalListSortingStrategy}
+                >
+                    <div className="space-y-4">
+                        {educations.map((education) => (
+                            <SortableEducationItem
+                                key={education.id}
+                                education={education}
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
+                                isDisabled={isAdding || editingId !== null}
+                            />
+                        ))}
 
-                {educations.length === 0 && !isFetching && (
-                    <Card>
-                        <CardContent className="flex flex-col items-center justify-center py-8">
-                            <GraduationCap className="h-12 w-12 text-muted-foreground mb-4" />
-                            <p className="text-muted-foreground text-center">
-                                No education entries added yet. Click "Add Education" to get started.
-                            </p>
-                        </CardContent>
-                    </Card>
-                )}
-            </div>
+                        {educations.length === 0 && !isFetching && (
+                            <Card>
+                                <CardContent className="flex flex-col items-center justify-center py-8">
+                                    <GraduationCap className="h-12 w-12 text-muted-foreground mb-4" />
+                                    <p className="text-muted-foreground text-center">
+                                        No education entries added yet. Click "Add Education" to get started.
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+                </SortableContext>
+            </DndContext>
         </div>
     );
 } 

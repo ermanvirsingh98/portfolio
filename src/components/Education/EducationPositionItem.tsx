@@ -26,7 +26,7 @@ export function EducationPositionItem({ education }: { education: any }) {
                         </div>
 
                         <h4 className="flex-1 font-heading font-medium text-balance underline-offset-4 group-hover/education:underline">
-                            {education.degree} in {education.field}
+                            {education.degree} in {education.fieldOfStudy}
                         </h4>
 
                         <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground transition-transform duration-300" />

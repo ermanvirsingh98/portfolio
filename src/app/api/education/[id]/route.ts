@@ -12,6 +12,7 @@ export async function PUT(
       institution,
       degree,
       fieldOfStudy,
+      field, // Handle both field names for compatibility
       location,
       startDate,
       endDate,
@@ -25,7 +26,7 @@ export async function PUT(
       data: {
         institution,
         degree,
-        fieldOfStudy,
+        fieldOfStudy: fieldOfStudy || field, // Use fieldOfStudy if provided, otherwise use field
         location,
         startDate: new Date(startDate),
         endDate: endDate ? new Date(endDate) : null,

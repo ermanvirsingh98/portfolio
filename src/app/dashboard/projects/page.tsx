@@ -9,8 +9,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, Save, X, Loader2, ExternalLink } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, Loader2, ExternalLink, GripVertical } from "lucide-react";
 import { api } from "@/lib/api";
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const projectSchema = z.object({
     title: z.string().min(1, "Project title is required"),
@@ -38,12 +57,131 @@ interface Project {
     order: number;
 }
 
+// Sortable Project Item Component
+function SortableProjectItem({
+    project,
+    onEdit,
+    onDelete,
+    isDisabled
+}: {
+    project: Project;
+    onEdit: (project: Project) => void;
+    onDelete: (id: string) => void;
+    isDisabled: boolean;
+}) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: project.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+        <Card ref={setNodeRef} style={style} className={isDragging ? "shadow-lg" : ""}>
+            <CardHeader>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                        <div
+                            {...attributes}
+                            {...listeners}
+                            className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded"
+                            title="Drag to reorder"
+                        >
+                            <GripVertical className="h-4 w-4 text-gray-400" />
+                        </div>
+                        {project.imageUrl && (
+                            <img
+                                src={project.imageUrl}
+                                alt={`${project.title} preview`}
+                                className="h-16 w-16 rounded object-cover"
+                            />
+                        )}
+                        <div>
+                            <CardTitle className="text-lg">{project.title}</CardTitle>
+                            <CardDescription>{project.description}</CardDescription>
+                        </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        {project.featured && (
+                            <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">
+                                Featured
+                            </span>
+                        )}
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => onEdit(project)}
+                            disabled={isDisabled}
+                        >
+                            <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => onDelete(project.id)}
+                            disabled={isDisabled}
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <p className="text-sm text-muted-foreground mb-3">{project.content}</p>
+                <div className="flex flex-wrap gap-2 mb-3">
+                    {project.technologies.map((tech, index) => (
+                        <span
+                            key={index}
+                            className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-md"
+                        >
+                            {tech}
+                        </span>
+                    ))}
+                </div>
+                <div className="flex space-x-2">
+                    {project.githubUrl && (
+                        <Button variant="outline" size="default" asChild>
+                            <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="mr-2 h-4 w-4" />
+                                GitHub
+                            </a>
+                        </Button>
+                    )}
+                    {project.liveUrl && (
+                        <Button variant="outline" size="default" asChild>
+                            <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="mr-2 h-4 w-4" />
+                                Live Demo
+                            </a>
+                        </Button>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
 export default function ProjectsPage() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(true);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     const form = useForm<ProjectFormData>({
         resolver: zodResolver(projectSchema),
@@ -132,6 +270,36 @@ export default function ProjectsPage() {
         setIsAdding(false);
         setEditingId(null);
         form.reset();
+    };
+
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (active.id !== over?.id) {
+            setProjects((items) => {
+                const oldIndex = items.findIndex((item) => item.id === active.id);
+                const newIndex = items.findIndex((item) => item.id === over?.id);
+
+                const newItems = arrayMove(items, oldIndex, newIndex);
+
+                // Update order numbers and save to database
+                const updatedItems = newItems.map((item, index) => ({
+                    ...item,
+                    order: index,
+                }));
+
+                // Save the new order to the database
+                updatedItems.forEach(async (item) => {
+                    try {
+                        await api.projects.update(item.id, item);
+                    } catch (error) {
+                        console.error("Error updating project order:", error);
+                    }
+                });
+
+                return updatedItems;
+            });
+        }
     };
 
     if (isFetching) {
@@ -299,94 +467,39 @@ export default function ProjectsPage() {
             )}
 
             {/* Projects List */}
-            <div className="space-y-4">
-                {projects.map((project) => (
-                    <Card key={project.id}>
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                    {project.imageUrl && (
-                                        <img
-                                            src={project.imageUrl}
-                                            alt={`${project.title} preview`}
-                                            className="h-16 w-16 rounded object-cover"
-                                        />
-                                    )}
-                                    <div>
-                                        <CardTitle className="text-lg">{project.title}</CardTitle>
-                                        <CardDescription>{project.description}</CardDescription>
-                                    </div>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    {project.featured && (
-                                        <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">
-                                            Featured
-                                        </span>
-                                    )}
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => handleEdit(project)}
-                                        disabled={isAdding || editingId !== null}
-                                    >
-                                        <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => handleDelete(project.id)}
-                                        disabled={isAdding || editingId !== null}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-muted-foreground mb-3">{project.content}</p>
-                            <div className="flex flex-wrap gap-2 mb-3">
-                                {project.technologies.map((tech, index) => (
-                                    <span
-                                        key={index}
-                                        className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-md"
-                                    >
-                                        {tech}
-                                    </span>
-                                ))}
-                            </div>
-                            <div className="flex space-x-2">
-                                {project.githubUrl && (
-                                    <Button variant="outline" size="default" asChild>
-                                        <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
-                                            <ExternalLink className="mr-2 h-4 w-4" />
-                                            GitHub
-                                        </a>
-                                    </Button>
-                                )}
-                                {project.liveUrl && (
-                                    <Button variant="outline" size="default" asChild>
-                                        <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                                            <ExternalLink className="mr-2 h-4 w-4" />
-                                            Live Demo
-                                        </a>
-                                    </Button>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+            >
+                <SortableContext
+                    items={projects.map(project => project.id)}
+                    strategy={verticalListSortingStrategy}
+                >
+                    <div className="space-y-4">
+                        {projects.map((project) => (
+                            <SortableProjectItem
+                                key={project.id}
+                                project={project}
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
+                                isDisabled={isAdding || editingId !== null}
+                            />
+                        ))}
 
-                {projects.length === 0 && !isFetching && (
-                    <Card>
-                        <CardContent className="flex flex-col items-center justify-center py-8">
-                            <ExternalLink className="h-12 w-12 text-muted-foreground mb-4" />
-                            <p className="text-muted-foreground text-center">
-                                No projects added yet. Click "Add Project" to get started.
-                            </p>
-                        </CardContent>
-                    </Card>
-                )}
-            </div>
+                        {projects.length === 0 && !isFetching && (
+                            <Card>
+                                <CardContent className="flex flex-col items-center justify-center py-8">
+                                    <ExternalLink className="h-12 w-12 text-muted-foreground mb-4" />
+                                    <p className="text-muted-foreground text-center">
+                                        No projects added yet. Click "Add Project" to get started.
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+                </SortableContext>
+            </DndContext>
         </div>
     );
 } 

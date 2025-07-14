@@ -8,8 +8,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Edit, Trash2, Save, X, Loader2, ExternalLink } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, Loader2, ExternalLink, GripVertical } from "lucide-react";
 import { api } from "@/lib/api";
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const skillSchema = z.object({
     name: z.string().min(1, "Skill name is required"),
@@ -29,12 +48,106 @@ interface Skill {
     order: number;
 }
 
+// Sortable Skill Item Component
+function SortableSkillItem({
+    skill,
+    onEdit,
+    onDelete,
+    isDisabled
+}: {
+    skill: Skill;
+    onEdit: (skill: Skill) => void;
+    onDelete: (id: string) => void;
+    isDisabled: boolean;
+}) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: skill.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+        <Card ref={setNodeRef} style={style} className={isDragging ? "shadow-lg" : ""}>
+            <CardHeader>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                        <div
+                            {...attributes}
+                            {...listeners}
+                            className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded"
+                            title="Drag to reorder"
+                        >
+                            <GripVertical className="h-4 w-4 text-gray-400" />
+                        </div>
+                        {skill.iconUrl && (
+                            <img
+                                src={skill.iconUrl}
+                                alt={`${skill.name} icon`}
+                                className="h-8 w-8 rounded object-cover"
+                            />
+                        )}
+                        <div>
+                            <CardTitle className="text-lg">{skill.name}</CardTitle>
+                            <CardDescription>{skill.category}</CardDescription>
+                        </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <div className="flex space-x-1">
+                            {[1, 2, 3, 4, 5].map((level) => (
+                                <div
+                                    key={level}
+                                    className={`h-2 w-2 rounded-full ${level <= skill.level
+                                        ? "bg-primary"
+                                        : "bg-muted"
+                                        }`}
+                                />
+                            ))}
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => onEdit(skill)}
+                            disabled={isDisabled}
+                        >
+                            <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => onDelete(skill.id)}
+                            disabled={isDisabled}
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            </CardHeader>
+        </Card>
+    );
+}
+
 export default function SkillsPage() {
     const [skills, setSkills] = useState<Skill[]>([]);
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(true);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     const form = useForm<SkillFormData>({
         resolver: zodResolver(skillSchema),
@@ -110,6 +223,36 @@ export default function SkillsPage() {
         setIsAdding(false);
         setEditingId(null);
         form.reset();
+    };
+
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (active.id !== over?.id) {
+            setSkills((items) => {
+                const oldIndex = items.findIndex((item) => item.id === active.id);
+                const newIndex = items.findIndex((item) => item.id === over?.id);
+
+                const newItems = arrayMove(items, oldIndex, newIndex);
+
+                // Update order numbers and save to database
+                const updatedItems = newItems.map((item, index) => ({
+                    ...item,
+                    order: index,
+                }));
+
+                // Save the new order to the database
+                updatedItems.forEach(async (item) => {
+                    try {
+                        await api.skills.update(item.id, item);
+                    } catch (error) {
+                        console.error("Error updating skill order:", error);
+                    }
+                });
+
+                return updatedItems;
+            });
+        }
     };
 
     if (isFetching) {
@@ -227,69 +370,39 @@ export default function SkillsPage() {
             )}
 
             {/* Skills List */}
-            <div className="space-y-4">
-                {skills.map((skill) => (
-                    <Card key={skill.id}>
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                    {skill.iconUrl && (
-                                        <img
-                                            src={skill.iconUrl}
-                                            alt={`${skill.name} icon`}
-                                            className="h-8 w-8 rounded object-cover"
-                                        />
-                                    )}
-                                    <div>
-                                        <CardTitle className="text-lg">{skill.name}</CardTitle>
-                                        <CardDescription>{skill.category}</CardDescription>
-                                    </div>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <div className="flex space-x-1">
-                                        {[1, 2, 3, 4, 5].map((level) => (
-                                            <div
-                                                key={level}
-                                                className={`h-2 w-2 rounded-full ${level <= skill.level
-                                                        ? "bg-primary"
-                                                        : "bg-muted"
-                                                    }`}
-                                            />
-                                        ))}
-                                    </div>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => handleEdit(skill)}
-                                        disabled={isAdding || editingId !== null}
-                                    >
-                                        <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => handleDelete(skill.id)}
-                                        disabled={isAdding || editingId !== null}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        </CardHeader>
-                    </Card>
-                ))}
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+            >
+                <SortableContext
+                    items={skills.map(skill => skill.id)}
+                    strategy={verticalListSortingStrategy}
+                >
+                    <div className="space-y-4">
+                        {skills.map((skill) => (
+                            <SortableSkillItem
+                                key={skill.id}
+                                skill={skill}
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
+                                isDisabled={isAdding || editingId !== null}
+                            />
+                        ))}
 
-                {skills.length === 0 && !isFetching && (
-                    <Card>
-                        <CardContent className="flex flex-col items-center justify-center py-8">
-                            <ExternalLink className="h-12 w-12 text-muted-foreground mb-4" />
-                            <p className="text-muted-foreground text-center">
-                                No skills added yet. Click "Add Skill" to get started.
-                            </p>
-                        </CardContent>
-                    </Card>
-                )}
-            </div>
+                        {skills.length === 0 && !isFetching && (
+                            <Card>
+                                <CardContent className="flex flex-col items-center justify-center py-8">
+                                    <ExternalLink className="h-12 w-12 text-muted-foreground mb-4" />
+                                    <p className="text-muted-foreground text-center">
+                                        No skills added yet. Click "Add Skill" to get started.
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+                </SortableContext>
+            </DndContext>
         </div>
     );
 } 
